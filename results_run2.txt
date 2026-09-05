@@ -1,0 +1,43 @@
+CAPT-IIoT Improved Pipeline (v2) - Run 2 Results
+==================================================
+Date: 2026-09-05
+Dataset: Phase1_Provenance.csv + Phase2_Provenance.csv
+Nodes: 84850 | Malicious: 402 (0.474%)
+Total windows: 85 (2h each, MAX_EDGES_PER_WINDOW=8000)
+Malicious windows: 2 (indices: [67, 75])
+
+FIXES APPLIED vs Run 1:
+  1. WINDOW_SECONDS: 14400 -> 7200 (4h -> 2h)
+  2. Stratified folds: distributes malicious windows across folds round-robin
+
+WALK-FORWARD SUMMARY (3 folds)
+==============================
+
+     fold  n_train_windows  n_test_windows  node_precision  node_recall  node_pr_auc  edge_pr_auc  n_test_malicious
+0  fold_1               57              28          0.1300       0.0798       0.0318       0.7931               163
+1  fold_2               57              28          0.3191       0.6842       0.1972       0.0002                76
+2  fold_3               57              28          0.5115       0.4188       0.3040       0.0000               160
+
+AGGREGATE:
+  node_precision: mean=0.3202  std=0.1868
+  node_recall:    mean=0.3942  std=0.3030
+  node_pr_auc:    mean=0.1777  std=0.1371
+  edge_pr_auc:    mean=0.2644  std=0.4578
+
+COMPARISON WITH RUN 1:
+                    Run 1       Run 2       Delta
+  node_precision:  0.5685      0.3202      -0.2483
+  node_recall:     0.3084      0.3942      +0.0858
+  node_pr_auc:     0.2647      0.1777      -0.0870
+  edge_pr_auc:     0.0486      0.2644      +0.2158
+  degenerate folds: 1 (fold3)   0          FIXED
+
+KEY OBSERVATIONS:
+  - All 3 folds now have malicious test nodes (no more degenerate folds)
+  - Edge classifier improved dramatically on fold_1 (PR-AUC 0.79) where it had
+    69 malicious test edges
+  - Fold 3 edge classifier failed (0 malicious edges in test -> 0/0)
+  - Node recall improved (39% vs 31%) but precision dropped
+  - Still only 2 malicious windows out of 85 -> extreme temporal concentration
+  - Pretraining loss oscillates (doesn't converge smoothly)
+  - Variance across folds remains high due to tiny malicious set

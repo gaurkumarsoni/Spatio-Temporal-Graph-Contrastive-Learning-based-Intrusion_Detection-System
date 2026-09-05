@@ -1,0 +1,38 @@
+CAPT-IIoT Improved Pipeline (v2) - Run 4 Results
+==================================================
+Date: 2026-09-05
+Changes vs Run 3: GNN 128->64, LSTM 64->32, dropout 0.15->0.2,
+  edge loss weight 0.5->0.3, masked subLabel loss, skip edge loss when 0 mal edges
+
+WALK-FORWARD SUMMARY (3 folds)
+==============================
+
+     fold  n_train_windows  n_test_windows  node_precision  node_recall  node_pr_auc  edge_pr_auc  n_test_malicious
+0  fold_1               57              28          0.1290       0.0736       0.0253       0.0108               163
+1  fold_2               57              28          0.3704       0.6579       0.2361       1.0000                76
+2  fold_3               57              28          0.9900       0.6188       0.6260       0.0000               160
+
+AGGREGATE:
+  node_precision: mean=0.4960  std=0.4447
+  node_recall:    mean=0.4501  std=0.3266
+  node_pr_auc:    mean=0.2958  std=0.3048
+  edge_pr_auc:    mean=0.3369  std=0.5743
+
+COMPARISON (all runs):
+                    Run 1       Run 2       Run 3       Run 4
+  node_precision:  0.5685      0.3202      0.1887      0.4960
+  node_recall:     0.3084      0.3942      0.2545      0.4501
+  node_pr_auc:     0.2647      0.1777      0.1987      0.2958
+
+BEST RESULT: Fold 3
+  - precision=0.99, recall=0.62, PR-AUC=0.63
+  - At >=90% precision threshold: precision=0.935, recall=0.625
+  - This is the first result that would be operationally useful for an IDS
+
+KEY OBSERVATIONS:
+  1. Smaller model (64/32) trained faster (1.5s/epoch vs 17s/epoch) and better
+  2. Masked subLabel loss didn't break anything, but sublabel accuracy still ~5%
+  3. Fold 3 is dramatically better than folds 1/2 -- HIGH variance across folds
+  4. The variance is driven by WHICH malicious nodes end up in test set
+  5. SubLabel classifier still useless (just predicts credentialAccess for everything)
+  6. 18 nodes still have subLabel="0" in raw data (not fixed)

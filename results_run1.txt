@@ -1,0 +1,83 @@
+CAPT-IIoT Improved Pipeline (v2) - Run 1 Results
+==================================================
+Date: 2026-09-05
+Dataset: Phase1_Provenance.csv + Phase2_Provenance.csv
+Nodes: 84850 | Malicious: 402 (0.474%)
+Total windows: 43 (4h each, MAX_EDGES_PER_WINDOW=8000)
+
+CONFIG:
+  USE_RELATIONAL_ATTENTION = True
+  USE_SMOTE = True (SMOTE_TARGET_RATIO = 0.3)
+  EDGE_LOSS_WEIGHT = 0.5
+  USE_LOSS = "focal"
+  PRETRAIN_EPOCHS = 30
+  CLASSIFIER_EPOCHS = 150
+  NUM_FOLDS = 3 (walk-forward validation)
+  GNN_HIDDEN=128, GNN_OUT=128, LSTM_HIDDEN=64, ATTN_HEADS=4, DROPOUT=0.15
+
+WALK-FORWARD SUMMARY (3 folds)
+==============================
+
+     fold  cutoff  node_precision  node_recall  node_pr_auc  edge_pr_auc  n_test_malicious
+0  fold_1      33        0.894737     0.273092     0.291262     0.020743               249
+1  fold_2      36        0.810811     0.652174     0.502964     0.125000                46
+2  fold_3      40        0.000000     0.000000     0.000000     0.000000                 0
+
+AGGREGATE:
+  node_precision: mean=0.5685  std=0.4941
+  node_recall:    mean=0.3084  std=0.3275
+  node_pr_auc:    mean=0.2647  std=0.2525
+  edge_pr_auc:    mean=0.0486  std=0.0670
+
+DETAILED FOLD RESULTS:
+======================
+
+--- FOLD 1 (cutoff_fraction=0.5, cutoff=33/43) ---
+Pretraining: 30 epochs, final loss=1.1216
+SMOTE: train n=63167, malicious=14577 (23.08%)
+NODE report:
+              precision    recall  f1-score   support
+      benign       0.99      1.00      1.00     18814
+   malicious       0.89      0.27      0.42       249
+    accuracy                           0.99     19063
+PR-AUC: 0.2913
+Threshold for >=90% precision: 0.898 -> precision=0.905, recall=0.269
+
+EDGE report (auxiliary head):
+              precision    recall  f1-score   support
+      benign       1.00      0.95      0.97     61328
+   malicious       0.02      1.00      0.04        65
+Edge PR-AUC: 0.0207
+
+--- FOLD 2 (cutoff_fraction=0.675, cutoff=36/43) ---
+Pretraining: 30 epochs, final loss=1.3286
+SMOTE: train n=70344, malicious=16233 (23.08%)
+NODE report:
+              precision    recall  f1-score   support
+      benign       1.00      1.00      1.00     12319
+   malicious       0.81      0.65      0.72        46
+    accuracy                           1.00     12365
+PR-AUC: 0.5030
+
+EDGE report (auxiliary head):
+              precision    recall  f1-score   support
+      benign       1.00      1.00      1.00     41012
+   malicious       0.12      1.00      0.22         1
+Edge PR-AUC: 0.1250
+
+--- FOLD 3 (cutoff_fraction=0.85, cutoff=40/43) ---
+Pretraining: 30 epochs, final loss=1.2519
+SMOTE: train n=79552, malicious=18358 (23.08%)
+NODE report:
+  No test malicious nodes (n_test_malicious=0) -> all metrics 0/undefined
+PR-AUC: 0.0
+Edge PR-AUC: 0.0
+
+KEY ISSUES IDENTIFIED:
+======================
+1. Extreme class imbalance: only 402 malicious nodes out of 84850 (0.474%)
+2. Fold 3 has ZERO malicious test nodes -> degenerate evaluation
+3. Edge classifier is ineffective (PR-AUC ~0.05 avg) due to label sparsity
+4. High variance across folds (std ~0.3-0.5) due to tiny malicious set
+5. Pretraining loss doesn't converge well (fluctuates ~1.1-1.6)
+6. Node recall is low (27%-65%) despite high precision

@@ -1,0 +1,41 @@
+CAPT-IIoT Improved Pipeline (v2) - Run 3 Results
+==================================================
+Date: 2026-09-05
+Changes vs Run 2: PRETRAIN_PHASE2_ONLY=True, SubLabelClassifier (10-class) added
+
+WALK-FORWARD SUMMARY (3 folds)
+==============================
+
+     fold  n_train_windows  n_test_windows  node_precision  node_recall  node_pr_auc  edge_pr_auc  n_test_malicious
+0  fold_1               57              28          0.1304       0.0736       0.0238       0.7931               163
+1  fold_2               57              28          0.3835       0.6711       0.2452       0.0002                76
+2  fold_3               57              28          0.0526       0.0188       0.3271       0.0000               160
+
+AGGREGATE:
+  node_precision: mean=0.1887  std=0.1728
+  node_recall:    mean=0.2545  std=0.3618
+  node_pr_auc:    mean=0.1987  std=0.1569
+  edge_pr_auc:    mean=0.2644  std=0.4578
+
+SUBLABEL REPORT:
+  Fold 1 (163 test malicious): benign=79, credentialAccess=74, CandC=10
+    -> classifier predicts benign for all, accuracy=48%
+  Fold 2 (76 test malicious):  benign=9, collection=20, defenceEvasion=45, initialAccess=2
+    -> classifier predicts benign for all, accuracy=12%
+  Fold 3 (160 test malicious): benign=18, credentialAccess=8, collection=59, discovery=28,
+     exfiltration=22, persistence=9, CandC=6, lateralMovement=10
+    -> classifier predicts credentialAccess for most, accuracy=15%
+
+COMPARISON WITH RUN 2:
+                    Run 2       Run 3       Delta
+  node_precision:  0.3202      0.1887      -0.1315
+  node_recall:     0.3942      0.2545      -0.1397
+  node_pr_auc:     0.1777      0.1987      +0.0210
+
+ISSUES:
+  1. 18 nodes still have subLabel="0" in raw data -> mapped to benign
+  2. 70 nodes from wdf_mal_to have subLabel="benign" (no real subLabel)
+     -> ~50% of malicious training nodes labeled "benign" confuses aux loss
+  3. SubLabel classifier effectively learns to predict benign for everything
+  4. PRETRAIN_PHASE2_ONLY helps fold 3 PR-AUC (0.327 vs 0.000) but hurts fold 1
+  5. SubLabel aux loss may be hurting binary detection by adding noisy gradients
